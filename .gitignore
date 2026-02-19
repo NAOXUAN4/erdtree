@@ -48,6 +48,20 @@ build/
 .env.local
 .env.development.local
 .env.test.local
+
+# Trae IDE
+.trae/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# PWA
+public/sw.js
+public/workbox-*.js
 .env.production.local
 
 # Debug
