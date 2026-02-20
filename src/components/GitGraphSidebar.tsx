@@ -1,16 +1,17 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { 
-  GitBranch, 
-  Plus, 
-  Download, 
-  RotateCcw, 
+import {
+  GitBranch,
+  Plus,
+  Download,
+  RotateCcw,
   Bot,
   User,
   Settings2
 } from 'lucide-react'
 import { useConversationStore } from '@/store/useConversationStore'
+import { useTranslation } from '@/lib/i18n'
 import BranchDialog from './BranchDialog'
 
 interface GraphNode {
@@ -44,6 +45,7 @@ const GitGraphSidebar = () => {
     getAllBranches,
   } = useConversationStore()
 
+  const { t } = useTranslation()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogDefaultName, setDialogDefaultName] = useState('')
   const [pendingMessageId, setPendingMessageId] = useState<string | null>(null)
@@ -60,19 +62,19 @@ const GitGraphSidebar = () => {
   const { nodes, edges, height } = useMemo(() => {
     const nodeList: GraphNode[] = []
     const edgeList: GraphEdge[] = []
-    
+
     const allMessages = Object.values(messages).sort((a, b) => a.timestamp - b.timestamp)
     const allBranches = getAllBranches()
-    
+
     const branchColumns: Record<string, number> = {}
     let currentColumn = 0
-    
+
     const mainBranch = allBranches.find(b => b.name === 'main')
     if (mainBranch) {
       branchColumns[mainBranch.id] = 0
       currentColumn = 1
     }
-    
+
     allBranches.forEach(branch => {
       if (branch.name !== 'main') {
         branchColumns[branch.id] = currentColumn++
@@ -85,14 +87,14 @@ const GitGraphSidebar = () => {
     const startY = 24
 
     const messagePositions: Record<string, { x: number; y: number }> = {}
-    
+
     allMessages.forEach((msg, index) => {
       const column = branchColumns[msg.branchId] ?? 0
       const x = startX + column * columnWidth
       const y = startY + index * rowHeight
-      
+
       messagePositions[msg.id] = { x, y }
-      
+
       const branch = branches[msg.branchId]
       nodeList.push({
         id: msg.id,
@@ -110,7 +112,7 @@ const GitGraphSidebar = () => {
         const parentPos = messagePositions[msg.parentId]
         const parentBranch = allMessages.find(m => m.id === msg.parentId)?.branchId
         const parentBranchColor = parentBranch ? branches[parentBranch]?.color : '#18181b'
-        
+
         edgeList.push({
           from: parentPos,
           to: { x, y },
@@ -120,10 +122,10 @@ const GitGraphSidebar = () => {
       }
     })
 
-    return { 
-      nodes: nodeList, 
-      edges: edgeList, 
-      height: Math.max(400, startY + allMessages.length * rowHeight + 40) 
+    return {
+      nodes: nodeList,
+      edges: edgeList,
+      height: Math.max(400, startY + allMessages.length * rowHeight + 40)
     }
   }, [messages, branches, getAllBranches])
 
@@ -180,22 +182,30 @@ const GitGraphSidebar = () => {
     }
   }
 
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'user': return t('roles.user')
+      case 'assistant': return t('roles.assistant')
+      default: return t('roles.system')
+    }
+  }
+
   // 防止 hydration 不匹配，服务端渲染时返回简化版本
   if (!mounted) {
     return (
-      <div className="w-72 bg-white border-r border-zinc-200 flex flex-col">
-        <div className="px-4 py-3 border-b border-zinc-200">
+      <div className="w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
+        <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center space-x-2">
-            <GitBranch className="w-4 h-4 text-zinc-700" />
-            <span className="text-sm font-medium text-zinc-900">分支</span>
+            <GitBranch className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t('sidebar.branches')}</span>
           </div>
         </div>
-        <div className="flex-1 bg-zinc-50/30" />
-        <div className="p-3 border-t border-zinc-200 space-y-2 bg-white">
-          <div className="w-full h-8 bg-zinc-100 rounded-md" />
+        <div className="flex-1 bg-zinc-50/30 dark:bg-zinc-900/30" />
+        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2 bg-white dark:bg-zinc-900">
+          <div className="w-full h-8 bg-zinc-100 dark:bg-zinc-800 rounded-md" />
           <div className="flex space-x-2">
-            <div className="flex-1 h-8 bg-zinc-100 rounded-md" />
-            <div className="flex-1 h-8 bg-zinc-100 rounded-md" />
+            <div className="flex-1 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-md" />
+            <div className="flex-1 h-8 bg-zinc-100 dark:bg-zinc-800 rounded-md" />
           </div>
         </div>
       </div>
@@ -204,35 +214,35 @@ const GitGraphSidebar = () => {
 
   return (
     <>
-      <div className="w-72 bg-white border-r border-zinc-200 flex flex-col">
+      <div className="w-72 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-zinc-200">
+        <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center space-x-2">
-            <GitBranch className="w-4 h-4 text-zinc-700" />
-            <span className="text-sm font-medium text-zinc-900">分支</span>
+            <GitBranch className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{t('sidebar.branches')}</span>
           </div>
         </div>
 
         {/* Branch list */}
-        <div className="p-3 border-b border-zinc-200">
+        <div className="p-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="space-y-0.5 max-h-36 overflow-y-auto">
             {allBranches.map(branch => (
               <div
                 key={branch.id}
                 className={`flex items-center px-2 py-1.5 rounded-md text-xs cursor-pointer transition-colors ${
-                  activeBranchId === branch.id 
-                    ? 'bg-zinc-100 text-zinc-900' 
-                    : 'text-zinc-600 hover:bg-zinc-50'
+                  activeBranchId === branch.id
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800'
                 }`}
                 onClick={() => useConversationStore.getState().switchBranch(branch.id)}
               >
-                <div 
+                <div
                   className="w-1.5 h-1.5 rounded-full mr-2"
                   style={{ backgroundColor: branch.color }}
                 />
                 <span className="flex-1 truncate font-medium">{branch.name}</span>
                 {activeBranchId === branch.id && (
-                  <div className="w-1 h-1 rounded-full bg-zinc-900" />
+                  <div className="w-1 h-1 rounded-full bg-zinc-900 dark:bg-zinc-100" />
                 )}
               </div>
             ))}
@@ -240,10 +250,10 @@ const GitGraphSidebar = () => {
         </div>
 
         {/* Git Graph */}
-        <div className="flex-1 overflow-auto bg-zinc-50/30">
+        <div className="flex-1 overflow-auto bg-zinc-50/30 dark:bg-zinc-900/30">
           <svg width="100%" height={height} className="min-w-full">
             {edges.map((edge, index) => renderEdge(edge, index))}
-            
+
             {nodes.map(node => (
               <g key={node.id}>
                 <circle
@@ -256,24 +266,26 @@ const GitGraphSidebar = () => {
                   className="cursor-pointer transition-all"
                   onClick={() => selectNode(node.id)}
                 />
-                
+
                 <foreignObject
                   x={node.x + 12}
                   y={node.y - 10}
                   width="160"
                   height="32"
                 >
-                  <div 
+                  <div
                     className={`flex items-center space-x-1.5 text-xs truncate cursor-pointer transition-colors ${
-                      selectedNodeId === node.id ? 'text-zinc-900 font-medium' : 'text-zinc-500 hover:text-zinc-700'
+                      selectedNodeId === node.id
+                        ? 'text-zinc-900 dark:text-zinc-100 font-medium'
+                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'
                     }`}
                     onClick={() => selectNode(node.id)}
                     title={`${node.branchName}: ${node.message}`}
                   >
-                    <span className="text-zinc-400">
+                    <span className="text-zinc-400 dark:text-zinc-500">
                       {getRoleIcon(node.role)}
                     </span>
-                    <span className="truncate">{node.message || '(空)'}</span>
+                    <span className="truncate">{node.message || '(empty)'}</span>
                   </div>
                 </foreignObject>
 
@@ -285,14 +297,14 @@ const GitGraphSidebar = () => {
                     height="16"
                   >
                     <button
-                      className="w-3.5 h-3.5 bg-white border border-zinc-200 rounded-full flex items-center justify-center hover:border-zinc-400 hover:bg-zinc-50 transition-colors"
+                      className="w-3.5 h-3.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center hover:border-zinc-400 dark:hover:border-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleOpenCreateBranch(node.id)
                       }}
-                      title="从此回复创建分支"
+                      title={t('branch.createFromHere')}
                     >
-                      <Plus className="w-2.5 h-2.5 text-zinc-500" />
+                      <Plus className="w-2.5 h-2.5 text-zinc-500 dark:text-zinc-400" />
                     </button>
                   </foreignObject>
                 )}
@@ -302,34 +314,35 @@ const GitGraphSidebar = () => {
         </div>
 
         {/* Actions */}
-        <div className="p-3 border-t border-zinc-200 space-y-2 bg-white">
-          <button 
-            className="w-full flex items-center justify-center space-x-1.5 text-xs bg-zinc-900 hover:bg-zinc-800 text-zinc-50 py-2 px-3 rounded-md transition-colors"
+        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800 space-y-2 bg-white dark:bg-zinc-900">
+          <button
+            className="w-full flex items-center justify-center space-x-1.5 text-xs bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 py-2 px-3 rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-40"
             onClick={() => {
               if (selectedNodeId) {
                 handleOpenCreateBranch(selectedNodeId)
               }
             }}
             disabled={!selectedNodeId}
+            title={!selectedNodeId ? t('sidebar.selectNodeHint') : ''}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>新建分支</span>
+            <span>{t('sidebar.newBranch')}</span>
           </button>
           <div className="flex space-x-2">
-            <button className="flex-1 flex items-center justify-center space-x-1 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2 px-3 rounded-md transition-colors">
+            <button className="flex-1 flex items-center justify-center space-x-1 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-2 px-3 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors">
               <Download className="w-3.5 h-3.5" />
-              <span>导出</span>
+              <span>{t('sidebar.export')}</span>
             </button>
-            <button 
-              className="flex-1 flex items-center justify-center space-x-1 text-xs bg-zinc-100 hover:bg-zinc-200 text-zinc-700 py-2 px-3 rounded-md transition-colors"
+            <button
+              className="flex-1 flex items-center justify-center space-x-1 text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 py-2 px-3 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
               onClick={() => {
-                if (confirm('确定要清空所有对话吗？')) {
+                if (confirm('Clear all conversations?')) {
                   initConversation()
                 }
               }}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>重置</span>
+              <span>{t('sidebar.reset')}</span>
             </button>
           </div>
         </div>

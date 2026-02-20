@@ -18,6 +18,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css'
 import { GitBranch, Plus, User, Bot, Settings2 } from 'lucide-react'
 import { useConversationStore } from '@/store/useConversationStore'
+import { useTranslation } from '@/lib/i18n'
 import BranchDialog from './BranchDialog'
 import MarkdownRenderer from './MarkdownRenderer'
 
@@ -36,21 +37,25 @@ const ConversationNode = ({ data, selected }: NodeProps) => {
     <div
       className={`min-w-[200px] max-w-[320px] rounded-lg border transition-all ${
         selected
-          ? 'border-zinc-900 ring-1 ring-zinc-900'
-          : 'border-zinc-200'
+          ? 'border-zinc-900 dark:border-zinc-100 ring-1 ring-zinc-900 dark:ring-zinc-100'
+          : 'border-zinc-200 dark:border-zinc-700'
       } ${
         isUser
-          ? 'bg-zinc-900 text-zinc-50'
+          ? 'bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900'
           : isSystem
-          ? 'bg-zinc-100 text-zinc-500'
-          : 'bg-white text-zinc-800'
+          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+          : 'bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
       }`}
     >
-      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-zinc-400 !border-0" />
+      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-zinc-400 dark:!bg-zinc-500 !border-0" />
       
-      <div className="px-3 py-2 border-b border-zinc-200/50 flex items-center justify-between">
+      <div className={`px-3 py-2 border-b flex items-center justify-between ${
+        isUser 
+          ? 'border-zinc-700 dark:border-zinc-200/20' 
+          : 'border-zinc-200/50 dark:border-zinc-700/50'
+      }`}>
         <div className="flex items-center space-x-1.5">
-          <span className="text-zinc-400">{getRoleIcon()}</span>
+          <span className={isUser ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-400 dark:text-zinc-500'}>{getRoleIcon()}</span>
           <span className="text-[10px] font-medium opacity-70">
             {isUser ? '用户' : isSystem ? '系统' : '助手'}
           </span>
@@ -77,7 +82,11 @@ const ConversationNode = ({ data, selected }: NodeProps) => {
         </div>
       </div>
       
-      <div className="px-3 py-1.5 border-t border-zinc-200/50 flex items-center justify-between">
+      <div className={`px-3 py-1.5 border-t flex items-center justify-between ${
+        isUser 
+          ? 'border-zinc-700 dark:border-zinc-200/20' 
+          : 'border-zinc-200/50 dark:border-zinc-700/50'
+      }`}>
         <span className="text-[10px] opacity-40">
           {new Date(data.timestamp).toLocaleTimeString('zh-CN', {
             hour: '2-digit',
@@ -86,7 +95,7 @@ const ConversationNode = ({ data, selected }: NodeProps) => {
         </span>
       </div>
       
-      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-zinc-400 !border-0" />
+      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-zinc-400 dark:!bg-zinc-500 !border-0" />
     </div>
   )
 }
@@ -106,6 +115,7 @@ const TreeVisualizer = () => {
     initConversation,
   } = useConversationStore()
   
+  const { t } = useTranslation()
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   
@@ -281,20 +291,20 @@ const TreeVisualizer = () => {
 
   return (
     <>
-      <div className="h-full bg-zinc-50 flex flex-col">
+      <div className="h-full bg-zinc-50 dark:bg-zinc-950 flex flex-col">
         {/* 工具栏 */}
-        <div className="px-4 py-2.5 bg-white border-b border-zinc-200 flex items-center justify-between">
+        <div className="px-4 py-2.5 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <GitBranch className="w-4 h-4 text-zinc-700" />
-            <span className="text-xs font-medium text-zinc-700">树状视图</span>
+            <GitBranch className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{t('tree.emptyTitle')}</span>
           </div>
           <button
             onClick={handleOpenCreateBranch}
             disabled={!selectedNodeId}
-            className="flex items-center space-x-1 px-3 py-1.5 text-xs font-medium bg-zinc-900 text-zinc-50 rounded-md hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center space-x-1 px-3 py-1.5 text-xs font-medium bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>新建分支</span>
+            <span>{t('sidebar.newBranch')}</span>
           </button>
         </div>
         
@@ -318,9 +328,9 @@ const TreeVisualizer = () => {
               style: { stroke: '#a1a1aa', strokeWidth: 1.5 },
             }}
           >
-            <Controls className="!bg-white !border-zinc-200 !shadow-sm" />
+            <Controls className="!bg-white dark:!bg-zinc-800 !border-zinc-200 dark:!border-zinc-700 !shadow-sm [&_button]:!bg-white dark:[&_button]:!bg-zinc-800 [&_button]:!border-zinc-200 dark:[&_button]:!border-zinc-700 [&_button:hover]:!bg-zinc-100 dark:[&_button:hover]:!bg-zinc-700 [&_svg]:!fill-zinc-700 dark:[&_svg]:!fill-zinc-300" />
             <MiniMap 
-              className="!bg-white !border-zinc-200 !rounded-lg !shadow-sm"
+              className="!bg-white dark:!bg-zinc-800 !border-zinc-200 dark:!border-zinc-700 !rounded-lg !shadow-sm"
               nodeStrokeWidth={2}
               nodeColor={(node) => {
                 return node.data?.branchColor || '#18181b'
@@ -332,6 +342,7 @@ const TreeVisualizer = () => {
               gap={20} 
               size={1} 
               color="#e4e4e7"
+              className="dark:!bg-zinc-950"
             />
           </ReactFlow>
         </div>

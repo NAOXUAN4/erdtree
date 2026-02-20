@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Send, AlertCircle, CornerDownLeft } from 'lucide-react'
 import { useConversationStore } from '@/store/useConversationStore'
+import { useSettingsStore } from '@/store/useSettingsStore'
 import { chatStreamFetch, ChatMessage } from '@/lib/llm'
+import { useTranslation } from '@/lib/i18n'
 import MarkdownRenderer from './MarkdownRenderer'
 
 const ChatInterface = () => {
@@ -16,6 +18,8 @@ const ChatInterface = () => {
     initConversation,
   } = useConversationStore()
 
+  const { settings } = useSettingsStore()
+  const { t } = useTranslation()
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -57,7 +61,9 @@ const ChatInterface = () => {
       const apiMessages: ChatMessage[] = [
         {
           role: 'system',
-          content: '你是一个有帮助的 AI 助手。请用中文回答用户的问题。',
+          content: settings.language === 'zh'
+            ? '你是一个有帮助的 AI 助手。请用中文回答用户的问题。'
+            : 'You are a helpful AI assistant. Please answer user questions in English.',
         },
         ...currentMessages
           .filter(m => m.role !== 'system')
@@ -86,12 +92,12 @@ const ChatInterface = () => {
 
         const chunk = decoder.decode(value, { stream: true })
         const lines = chunk.split('\n')
-        
+
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6)
             if (data === '[DONE]') continue
-            
+
             try {
               const parsed = JSON.parse(data)
               // DeepSeek/OpenAI 流式格式: choices[0].delta.content
@@ -112,7 +118,7 @@ const ChatInterface = () => {
 
     } catch (error) {
       console.error('Error sending message:', error)
-      setApiError(error instanceof Error ? error.message : '发送消息失败')
+      setApiError(error instanceof Error ? error.message : t('chat.error'))
     } finally {
       setIsLoading(false)
     }
@@ -126,7 +132,7 @@ const ChatInterface = () => {
   }
 
   const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString('zh-CN', {
+    return new Date(timestamp).toLocaleTimeString(settings.language === 'zh' ? 'zh-CN' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
     })
@@ -135,28 +141,28 @@ const ChatInterface = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Branch indicator */}
-      <div className="px-4 py-2 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
+      <div className="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
         <div className="flex items-center space-x-2">
-          <div 
+          <div
             className="w-2 h-2 rounded-full"
             style={{ backgroundColor: currentBranch?.color || '#18181b' }}
           />
-          <span className="text-xs font-medium text-zinc-700">
+          <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
             {currentBranch?.name || 'main'}
           </span>
-          <span className="text-xs text-zinc-400">
-            {currentMessages.filter(m => m.role !== 'system').length} 消息
+          <span className="text-xs text-zinc-400 dark:text-zinc-500">
+            {currentMessages.filter(m => m.role !== 'system').length} {t('chat.branchMessages')}
           </span>
         </div>
       </div>
 
       {/* Error message */}
       {apiError && (
-        <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-100 rounded-md flex items-start space-x-2">
-          <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+        <div className="mx-4 mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-md flex items-start space-x-2">
+          <AlertCircle className="w-4 h-4 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-xs font-medium text-red-700">请求失败</p>
-            <p className="text-xs text-red-600 mt-0.5">{apiError}</p>
+            <p className="text-xs font-medium text-red-700 dark:text-red-400">{t('chat.error')}</p>
+            <p className="text-xs text-red-600 dark:text-red-300 mt-0.5">{apiError}</p>
           </div>
         </div>
       )}
@@ -164,12 +170,12 @@ const ChatInterface = () => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {currentMessages.length === 0 || (currentMessages.length === 1 && currentMessages[0].role === 'system') ? (
-          <div className="flex flex-col items-center justify-center h-full text-zinc-400">
-            <div className="w-10 h-10 rounded-full border border-zinc-200 flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center justify-center h-full text-zinc-400 dark:text-zinc-500">
+            <div className="w-10 h-10 rounded-full border border-zinc-200 dark:border-zinc-700 flex items-center justify-center mb-3">
               <CornerDownLeft className="w-4 h-4" />
             </div>
-            <p className="text-sm text-zinc-500">开始对话</p>
-            <p className="text-xs text-zinc-400 mt-1">输入消息与 AI 助手交流</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{t('chat.emptyTitle')}</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">{t('chat.emptyDescription')}</p>
           </div>
         ) : (
           <div className="space-y-4 max-w-3xl mx-auto">
@@ -184,8 +190,8 @@ const ChatInterface = () => {
                     <div
                       className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                         message.role === 'user'
-                          ? 'bg-zinc-900 text-zinc-50'
-                          : 'bg-zinc-100 text-zinc-800'
+                          ? 'bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
                       }`}
                     >
                       {message.role === 'user' ? (
@@ -194,35 +200,35 @@ const ChatInterface = () => {
                         <MarkdownRenderer content={message.content} />
                       )}
                     </div>
-                    <span className="text-[10px] text-zinc-400 mt-1 px-1">
+                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 px-1">
                       {formatTime(message.timestamp)}
                     </span>
                   </div>
                 </div>
               ))}
-            
+
             {streamingContent && (
               <div className="flex justify-start">
                 <div className="max-w-[85%]">
-                  <div className="px-4 py-2.5 rounded-2xl bg-zinc-100 text-zinc-800 text-sm leading-relaxed">
+                  <div className="px-4 py-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-sm leading-relaxed">
                     <MarkdownRenderer content={streamingContent} />
                   </div>
                   <div className="flex space-x-1 mt-2 ml-1">
-                    <span className="w-1 h-1 bg-zinc-400 rounded-full animate-pulse" />
-                    <span className="w-1 h-1 bg-zinc-400 rounded-full animate-pulse delay-100" />
-                    <span className="w-1 h-1 bg-zinc-400 rounded-full animate-pulse delay-200" />
+                    <span className="w-1 h-1 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse" />
+                    <span className="w-1 h-1 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse delay-100" />
+                    <span className="w-1 h-1 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-pulse delay-200" />
                   </div>
                 </div>
               </div>
             )}
-            
+
             {isLoading && !streamingContent && (
               <div className="flex justify-start">
-                <div className="px-4 py-3 rounded-2xl bg-zinc-100">
+                <div className="px-4 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800">
                   <div className="flex space-x-1.5">
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce" />
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce delay-100" />
-                    <span className="w-1.5 h-1.5 bg-zinc-400 rounded-full animate-bounce delay-200" />
+                    <span className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-bounce delay-100" />
+                    <span className="w-1.5 h-1.5 bg-zinc-400 dark:bg-zinc-500 rounded-full animate-bounce delay-200" />
                   </div>
                 </div>
               </div>
@@ -233,29 +239,29 @@ const ChatInterface = () => {
       </div>
 
       {/* Input area */}
-      <div className="border-t border-zinc-200 p-4 bg-white">
+      <div className="border-t border-zinc-200 dark:border-zinc-800 p-4 bg-white dark:bg-zinc-900">
         <div className="max-w-3xl mx-auto relative">
           <textarea
             ref={inputRef}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入消息..."
+            placeholder={t('chat.inputPlaceholder')}
             disabled={isLoading}
             rows={1}
-            className="w-full pr-12 pl-4 py-3 bg-zinc-50 border border-zinc-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 disabled:opacity-50 transition-all"
+            className="w-full pr-12 pl-4 py-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-500 focus:border-zinc-400 dark:focus:border-zinc-500 disabled:opacity-50 transition-all"
             style={{ minHeight: '48px', maxHeight: '120px' }}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !inputMessage.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-zinc-900 text-zinc-50 rounded-lg hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-zinc-900 transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-zinc-900 dark:bg-zinc-100 text-zinc-50 dark:text-zinc-900 rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-zinc-900 dark:disabled:hover:bg-zinc-100 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
-        <p className="text-[10px] text-zinc-400 text-center mt-2">
-          按 Enter 发送，Shift + Enter 换行
+        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 text-center mt-2">
+          {settings.language === 'zh' ? '按 Enter 发送，Shift + Enter 换行' : 'Press Enter to send, Shift + Enter for new line'}
         </p>
       </div>
     </div>

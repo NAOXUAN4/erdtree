@@ -13,13 +13,23 @@
   --radius: 0.375rem;
 }
 
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #fafafa;
+}
+
 @layer base {
   * {
-    @apply border-zinc-200;
+    @apply border-zinc-200 dark:border-zinc-800;
   }
-  
+
   body {
-    @apply bg-zinc-50 text-zinc-950 antialiased;
+    @apply bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50 antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -35,16 +45,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  @apply bg-zinc-300 dark:bg-zinc-700;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  @apply bg-zinc-400 dark:bg-zinc-600;
 }
 
 /* 选中文字样式 */
 ::selection {
-  background: #18181b;
-  color: #fafafa;
+  @apply bg-zinc-900 text-zinc-50 dark:bg-zinc-50 dark:text-zinc-900;
 }
