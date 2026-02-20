@@ -1,14 +1,14 @@
-# ErdTree
-
-```text
-        [ main ]  o---o---o---o (HEAD)
-                       \
-         [ exp ]        o---o---o
-                             \
-         [ fix ]              o---o
-
 ```
-
+ _______   ________  ________  _________  ________  _______   _______      
+|\  ___ \ |\   __  \|\   ___ \|\___   ___\\   __  \|\  ___ \ |\  ___ \     
+\ \   __/|\ \  \|\  \ \  \_|\ \|___ \  \_\ \  \|\  \ \   __/|\ \   __/|    
+ \ \  \_|/_\ \   _  _\ \  \ \\ \   \ \  \ \ \   _  _\ \  \_|/_\ \  \_|/__  
+  \ \  \_|\ \ \  \\  \\ \  \_\\ \   \ \  \ \ \  \\  \\ \  \_|\ \ \  \_|\ \ 
+   \ \_______\ \__\\ _\\ \_______\   \ \__\ \ \__\\ _\\ \_______\ \_______\
+    \|_______|\|__|\|__|\|_______|    \|__|  \|__|\|__|\|_______|\|_______|
+                                                                           
+```                                                                    
+                                                                           
 **Git for LLM Conversations.**
 
 ErdTree is a version control system designed for Large Language Model (LLM) interactions. It solves the structural contradiction between the linear nature of chat interfaces and the non-linear, branching nature of human engineering thought.
@@ -30,6 +30,10 @@ ErdTree decouples storage from the LLM context window.
 * **Explicit Branching:** Create a branch from any historical node to explore alternative ideas without polluting the main context.
 * **Absolute Isolation:** The LLM only "sees" the exact path from the root to your current branch's HEAD. Sibling branches are completely isolated.
 
+  <img width="2324" height="1243" alt="image" src="https://github.com/user-attachments/assets/b2c75a04-4e75-47d8-aa3b-26735b481da4" />
+
+  <img width="1980" height="1161" alt="image" src="https://github.com/user-attachments/assets/29e9b89b-cc29-460b-887f-0baf0aad7195" />
+
 ## Core Features
 
 * **Git Graph Visualization:** Visual tree structure with branch lines and color-coded nodes.
@@ -38,6 +42,8 @@ ErdTree decouples storage from the LLM context window.
 * **Multi-Provider Support:** Configure multiple LLM providers (DeepSeek, OpenAI, Custom) and switch between them.
 * **Markdown Rendering:** Full markdown support in conversation bubbles and tree visualization.
 * **Stateless Architecture:** Compute (LLM) is stateless; Memory (Tree) is local. Switch models mid-conversation without losing your thought process.
+
+  <img width="325" height="730" alt="image" src="https://github.com/user-attachments/assets/7a1675ba-4165-445a-89dc-b10ce9b68d4b" />
 
 ## Quick Start
 
