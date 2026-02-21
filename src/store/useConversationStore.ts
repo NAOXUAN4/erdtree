@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 // 消息类型
 export interface Message {
@@ -338,7 +338,8 @@ export const useConversationStore = create<ConversationState>()(
       },
     }),
     {
-      name: 'conversation-storage',
+      name: 'erdtree-conversation',
+      storage: createJSONStorage(() => localStorage),
     }
   )
 )
